@@ -1,9 +1,0 @@
-global:
-  checkNewVersion: false
-  sendAnonymousUsage: false      
-providers:
-  file:
-    directory: "/che-exposures"
-    watch: true
-log:
-  level: DEBUG
