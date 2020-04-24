@@ -1,0 +1,69 @@
+== POC of a Dynamic Gateway Using Traefik
+
+This is a proof of concept how the single-host mode of Eclipse Che
+could work on OpenShift.
+
+This POC doesn't use any che code, nor does it deploy Eclipse Che.
+All it does is to deploy some example servers that could play role of
+components present in Eclipse Che.
+
+In link:workspaces.yaml, there is config map representing the configuration
+of Traefik - each file in the config map corresponds to the configuration
+for 1 workspace. This file also contains the definitions of pods and
+services representing the individual workspaces. The first file in the config
+map contains Traefik config to access the main "che server" itself. I haven't 
+found a way of putting it elsewhere and keep the whole system easy to update 
+and reconfigure.
+
+In link:infra.yaml, the main "che server" is configured together with
+Traefik pod and a single ingress called "gateway" that is the sole
+entrypoint into the system.
+
+To create the ingress or route to make this all publicly reachable, edit
+either link:k8s.yaml or link:openshift.yaml depending on where you deploy
+to and apply it after setting an appropriate host.
+
+=== Imagined Workflow
+
+The gateway is driven by the config map that Che server updates as new
+workspaces are started and stopped (we need to be careful here about
+concurrent updates - hopefully that can be handled by the (distributed) 
+locks we already have in place when dealing with runtimes).
+
+After an update to the config map, we need to "refresh" the Traefik pod
+so that it picks up changes to the config map (the default time period 
+for the automatic update is quite long: 
+https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#mounted-configmaps-are-updated-automatically
+). This can be easily done by just setting some annotation
+to a random value, e.g.:
+`oc annotate -n che pod traefik --overwrite refresh-toggle=qoij`
+
+This would also be Che server's responsibility.
+
+=== Deployment
+
+First you need to deploy `workspaces.yaml` so that at least the main server
+is configured for Traefik. After that deploy `infra.yaml`.
+
+If you want to "start another workspace", update `workspaces.yaml`, add 
+a new file to the `che-exposures` config map and define the appropriate pod, 
+config map and service for the new "workspace". Apply the `workspaces.yaml` 
+and then re-annotate the traefik pod with some fresh random value for the 
+`refres-toggle` annotations.
+
+=== How To Check It Works For Yourself
+
+Any URI not handled by some workspace is handled by the main "che server",
+e.g. http://<host>/my/random/endpoint, the response from the server will 
+look something like:
+
+  Che: /my/random/endpoint
+
+If you access an endpoint that should be routed to some workspace, e.g.
+http://<host>/ws-1/subpath/for/ws-1 you will see this in the response as:
+
+  ws-1: /subpath/for/ws-1
+
+These endpoints are handled by different servers than the main "che server"
+as can be seen in the configuration of the pods.
+

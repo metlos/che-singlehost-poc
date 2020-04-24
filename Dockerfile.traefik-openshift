@@ -1,0 +1,10 @@
+FROM traefik:2.2.0
+
+RUN adduser -D -H traefik
+
+USER traefik
+
+ENTRYPOINT ["/entrypoint.sh"]
+
+CMD ["traefik"]
+
