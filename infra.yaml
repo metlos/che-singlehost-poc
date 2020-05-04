@@ -8,6 +8,7 @@
 kind: Pod
 apiVersion: v1
 metadata:
+  namespace: gtw-che
   name: che-gateway
   labels:
     app: che-gateway 
@@ -42,6 +43,7 @@ spec:
 kind: ConfigMap
 apiVersion: v1
 metadata:
+  namespace: gtw-che
   name: traefik-config
 data:
   traefik.yml: |
@@ -66,6 +68,7 @@ data:
 kind: Service
 apiVersion: v1
 metadata:
+  namespace: gtw-che
   name: che-gateway
 spec:
   selector:
@@ -81,6 +84,7 @@ spec:
 kind: Pod
 apiVersion: v1
 metadata:
+  namespace: gtw-che
   name: che
   labels:
     app: che
@@ -99,6 +103,7 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
+  namespace: gtw-che
   name: che
 spec:
   selector:

@@ -42,13 +42,20 @@ This would also be Che server's responsibility.
 
 === Deployment
 
-First you need to deploy `workspaces.yaml` so that at least the main server
+First of all, run the `k8s-prelude.sh` or `openshift-prelude.sh` which will
+create the namespaces/projects necessary for this POC. They will create
+`gtw-che`, `gtw-usr1` and `gtw-usr2` namespaces where the `gtw-che` will 
+host the "che server", the Traefik gateway and its configuration. The other
+two namespaces will contain the workspace-specific deployments - the pod
+and the service.
+
+Then you need to deploy `workspaces.yaml` so that at least the main server
 is configured for Traefik. After that deploy `infra.yaml`.
 
 If you want to "start another workspace", update `workspaces.yaml`, add 
 a new file to the `che-exposures` config map and define the appropriate pod, 
-config map and service for the new "workspace". Apply the `workspaces.yaml` 
-and then re-annotate the traefik pod with some fresh random value for the 
+and service for the new "workspace". Apply the `workspaces.yaml` and then 
+re-annotate the traefik pod with some fresh random value for the 
 `refres-toggle` annotations.
 
 === How To Check It Works For Yourself

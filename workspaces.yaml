@@ -2,6 +2,7 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
+  namespace: gtw-che
   name: che-exposures
 data:
   che.yml: |
@@ -28,7 +29,7 @@ data:
         ws-1:
           loadBalancer:
             servers:
-            - url: 'http://ws-1'
+            - url: 'http://ws-1.gtw-usr1'
       middlewares:
         ws-1:
           stripPrefix:
@@ -46,7 +47,7 @@ data:
         ws-2:
           loadBalancer:
             servers:
-            - url: 'http://ws-2'
+            - url: 'http://ws-2.gtw-usr2'
       middlewares:
         ws-2:
           stripPrefix:
@@ -56,6 +57,7 @@ data:
 kind: Pod
 apiVersion: v1
 metadata:
+  namespace: gtw-usr1
   name: ws-1
   labels:
     app: ws-1
@@ -72,6 +74,7 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
+  namespace: gtw-usr1
   name: ws-1
 spec:
   selector:
@@ -84,6 +87,7 @@ spec:
 kind: Pod
 apiVersion: v1
 metadata:
+  namespace: gtw-usr2
   name: ws-2
   labels:
     app: ws-2
@@ -100,6 +104,7 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
+  namespace: gtw-usr2
   name: ws-2
 spec:
   selector:

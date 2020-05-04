@@ -2,6 +2,7 @@
 kind: Route
 apiVersion: v1
 metadata:
+  namespace: gtw-che
   name: che-gateway 
 spec:
   host: test-che-gateway.192.168.42.225.nip.io 
