@@ -69,6 +69,11 @@ a new workspace, all you need is to deploy the workspace objects in any namespac
 and create a labeled config map in the `gtw-che` namespace (the namespace of the
 gateway and che server) with the configuration for the Traefik gateway.
 
+There are 2 "demo" workspaces available - `ws-1.yaml` and `ws-2.yaml`. Just deploy
+in any order and stuff should be working. Deploying new workspaces is just a
+matter of adapting one of those files with new names and deploying it to
+the cluster again.
+
 === Deployment
 
 First of all, run the `k8s-prelude.sh` or `openshift-prelude.sh` which will
