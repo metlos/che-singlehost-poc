@@ -7,7 +7,15 @@ This POC doesn't use any che code, nor does it deploy Eclipse Che.
 All it does is to deploy some example servers that could play role of
 components present in Eclipse Che.
 
-In link:workspaces.yaml, there is config map representing the configuration
+It comes in two variants. The first, `no-controller`, is using vanilla image
+of Traefik and requires manual interventions to handle new workspaces, see
+below. The other, `cm-syncing`, is using a simple controller running as a 
+sidecar in the Traefik pod, that automates the process and new workspaces
+can be handled by merely creating a configmap with a certain label.
+
+=== No Controller
+
+In workspaces.yaml, there is config map representing the configuration
 of Traefik - each file in the config map corresponds to the configuration
 for 1 workspace. This file also contains the definitions of pods and
 services representing the individual workspaces. The first file in the config
@@ -23,7 +31,7 @@ To create the ingress or route to make this all publicly reachable, edit
 either link:k8s.yaml or link:openshift.yaml depending on where you deploy
 to and apply it after setting an appropriate host.
 
-=== Imagined Workflow
+==== Imagined Workflow
 
 The gateway is driven by the config map that Che server updates as new
 workspaces are started and stopped (we need to be careful here about
@@ -38,7 +46,28 @@ https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap
 to a random value, e.g.:
 `oc annotate -n che pod traefik --overwrite refresh-toggle=qoij`
 
+If you want to "start another workspace", update `workspaces.yaml`, add 
+a new file to the `che-exposures` config map and define the appropriate pod, 
+and service for the new "workspace". Apply the `workspaces.yaml` and then 
+re-annotate the traefik pod with some fresh random value for the 
+`refres-toggle` annotations.
+
 This would also be Che server's responsibility.
+
+=== ConfigMap Syncing
+
+There is a sidecar deployed alongside the main Traefik container that watches
+specifically labeled config maps that then reads those config maps and
+persists them into a predefined directory. This avoids the need to manually
+"bump" the pod at the cost of an additional sidecar running in the pod + 
+the need for slight privileges elevation - the sidecar needs to be able to watch
+and read the config maps and so the gateway pod needs to run using a service
+account having those privs.
+
+Other than that, the function of the pod as such is fully automatic. To deploy
+a new workspace, all you need is to deploy the workspace objects in any namespace
+and create a labeled config map in the `gtw-che` namespace (the namespace of the
+gateway and che server) with the configuration for the Traefik gateway.
 
 === Deployment
 
@@ -49,14 +78,9 @@ host the "che server", the Traefik gateway and its configuration. The other
 two namespaces will contain the workspace-specific deployments - the pod
 and the service.
 
-Then you need to deploy `workspaces.yaml` so that at least the main server
-is configured for Traefik. After that deploy `infra.yaml`.
+Then just deploy the yamls for the variant you wish to try out in the order.
 
-If you want to "start another workspace", update `workspaces.yaml`, add 
-a new file to the `che-exposures` config map and define the appropriate pod, 
-and service for the new "workspace". Apply the `workspaces.yaml` and then 
-re-annotate the traefik pod with some fresh random value for the 
-`refres-toggle` annotations.
+Pay attention to the notes on each of the variants above.
 
 === How To Check It Works For Yourself
 
